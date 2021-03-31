@@ -1,0 +1,4 @@
+<plugin>
+  <name>nowarn</name>
+  <classname>bl.NowarnPlugin</classname>
+</plugin>
