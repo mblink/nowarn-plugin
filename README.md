@@ -13,7 +13,7 @@ addCompilerPlugin("bondlink" %% "nowarn-plugin" % "1.0.0")
 
 ## Configure
 
-To configure a new annotation via the plugin, pass additional flags to scalac. The format of a flag is:
+To configure a new annotation via the plugin, pass additional flags to `scalac`. The format of a flag is:
 
 ```
 -P:nowarn:<annotation-name>:<nowarn-config>
@@ -21,7 +21,7 @@ To configure a new annotation via the plugin, pass additional flags to scalac. T
 
 Where `nowarn-config` is a string to be passed to `@annotation.nowarn`, e.g. `cat=deprecation` or `msg=never used`. You can find more info on [configuring the `nowarn` annotation here](https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html#configuring-warnings).
 
-For example, creating an `@unused` annotation that expanded to `@annotation.nowarn("msg=never used")`, add the following to your `build.sbt`:
+For example, to create an `@unused` annotation that expands to `@annotation.nowarn("msg=never used")` add the following to your `build.sbt`:
 
 ```scala
 scalacOptions += "-P:nowarn:unused:msg=never used"
@@ -39,4 +39,5 @@ Once you've configured an annotation via a `scalac` option, you can use it in yo
 
 ```scala
 def hasUnusedParam(@unused x: Int) = ...
+def hasUnusedParam(@my.pkg.unused x: Int) = ...
 ```
