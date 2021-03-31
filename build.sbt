@@ -4,6 +4,7 @@ val baseSettings = Seq(
   scalaVersion := "2.13.5",
   organization := "bondlink",
   version := "1.0.0",
+  gitPublishDir := file("/src/maven-repo"),
 )
 
 lazy val nowarnPlugin = project.in(file("."))
