@@ -16,7 +16,7 @@ class NowarnPlugin(override val global: Global) extends Plugin { self =>
   override def init(opts: List[String], error: String => Unit): Boolean = {
     opts.foreach(opt => opt.split(':').toList match {
       case annName :: wConf :: Nil =>
-        val annTree: Tree = annName.split('.').filter(_.nonEmpty).toList match {
+        val annTree: Tree = annName.split('.').filterNot(_.isEmpty).toList match {
           case h :: Nil => Ident(TypeName(h))
           case (h :: t) :+ last => Select(t.foldLeft(Ident(TermName(h)): Tree)((acc, x) => Select(acc, TermName(x))), TypeName(last))
           case _ => error(s"nowarn: invalid option: `$opt`"); q""

@@ -1,9 +1,13 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
+val scala_2_12 = "2.12.15"
+val scala_2_13 = "2.13.6"
+
 val baseSettings = Seq(
-  scalaVersion := "2.13.5",
+  crossScalaVersions := Seq(scala_2_12, scala_2_13),
+  scalaVersion := scala_2_13,
   organization := "bondlink",
-  version := "1.0.0",
+  version := "1.0.1",
   gitPublishDir := file("/src/maven-repo"),
 )
 
