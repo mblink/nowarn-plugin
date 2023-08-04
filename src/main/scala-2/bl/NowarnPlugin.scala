@@ -11,7 +11,7 @@ class NowarnPlugin(override val global: Global) extends Plugin { self =>
   val name: String = "nowarn"
   val description: String = "Expands custom annotations into `@annotation.nowarn`"
 
-  @volatile var configuredAnnotations = List.empty[(Tree, String)]
+  @volatile private var configuredAnnotations = Map.empty[Tree, List[String]]
 
   override def init(opts: List[String], error: String => Unit): Boolean = {
     opts.foreach(opt => opt.split(':').toList match {
@@ -21,10 +21,15 @@ class NowarnPlugin(override val global: Global) extends Plugin { self =>
           case (h :: t) :+ last => Select(t.foldLeft(Ident(TermName(h)): Tree)((acc, x) => Select(acc, TermName(x))), TypeName(last))
           case _ => error(s"nowarn: invalid option: `$opt`"); q""
         }
-        self.synchronized { configuredAnnotations = (annTree, wConf) :: configuredAnnotations }
+        self.synchronized {
+          val (found, upd) = configuredAnnotations.foldLeft((false, Map.empty[Tree, List[String]])) {
+            case ((_, accAnns), (t, wConfs)) if t.equalsStructure(annTree) => (true, accAnns + (t -> (wConf :: wConfs)))
+            case ((accFound, accAnns), (t, wConfs)) => (accFound, accAnns + (t -> wConfs))
+          }
+          configuredAnnotations = if (found) upd else upd + (annTree -> List(wConf))
+        }
       case _ => error(s"nowarn: invalid option `$opt`")
     })
-
     true
   }
 
@@ -36,17 +41,17 @@ class NowarnPlugin(override val global: Global) extends Plugin { self =>
     tree
   }
 
-  private def ann(tree: Tree, wConf: String): Tree =
+  private def nowarnAnnotation(tree: Tree)(wConf: String): Tree =
     withAllPos(q"""new _root_.scala.annotation.nowarn(${Literal(Constant(wConf))})""", tree.pos)
 
-  private def addAnn(tree: Tree, wConf: String, mods: Modifiers): Modifiers =
-    mods.mapAnnotations(ann(tree, wConf) :: _)
+  private def addNowarnAnnotations(tree: Tree, wConfs: List[String], mods: Modifiers): Modifiers =
+    mods.mapAnnotations(wConfs.map(nowarnAnnotation(tree)) ::: _)
 
   object ConfiguredAnnotation {
-    def unapply(tree: Tree): Option[String] =
+    def unapply(tree: Tree): Option[List[String]] =
       tree match {
         case Apply(Select(New(ann), _), _) =>
-          configuredAnnotations.collectFirst { case (t, s) if t.equalsStructure(ann) => s}
+          configuredAnnotations.collectFirst { case (t, wConfs) if t.equalsStructure(ann) => wConfs }
 
         case _ => None
       }
@@ -54,11 +59,14 @@ class NowarnPlugin(override val global: Global) extends Plugin { self =>
 
   object ModifierAnnotation {
     def unapply(mods: Modifiers): Option[Tree => Modifiers] = {
-      val (confO, rest) = mods.annotations.foldRight((Option.empty[String], List.empty[Tree])) {
-        case (ConfiguredAnnotation(conf), (_, anns)) => (Some(conf), anns)
-        case (a, (o, anns)) => (o, a.duplicate :: anns)
+      val (wConfs, remAnns) = mods.annotations.foldRight((List.empty[String], List.empty[Tree])) {
+        case (ConfiguredAnnotation(wConfs), (accWConfs, accAnns)) => (wConfs ::: accWConfs, accAnns)
+        case (ann, (accWConfs, accAnns)) => (accWConfs, ann.duplicate :: accAnns)
       }
-      confO.map(c => addAnn(_, c, mods.mapAnnotations(_ => rest)))
+      wConfs match {
+        case Nil => None
+        case _ :: _ => Some(addNowarnAnnotations(_, wConfs, mods.mapAnnotations(_ => remAnns)))
+      }
     }
   }
 
@@ -69,7 +77,10 @@ class NowarnPlugin(override val global: Global) extends Plugin { self =>
       case t @ ModuleDef(ModifierAnnotation(f), name, impl) => treeCopy.ModuleDef(t, f(t), name, impl)
       case t @ TypeDef(ModifierAnnotation(f), name, tparams, rhs) => treeCopy.TypeDef(t, f(t), name, tparams, rhs)
       case t @ ValDef(ModifierAnnotation(f), name, tpt, rhs) => treeCopy.ValDef(t, f(t), name, tpt, rhs)
-      case t @ Annotated(ConfiguredAnnotation(conf), arg) => treeCopy.Annotated(t, ann(t, conf), arg)
+      case t @ Annotated(ann @ ConfiguredAnnotation(wConf :: wConfs), arg) =>
+        wConfs.foldLeft(treeCopy.Annotated(t, nowarnAnnotation(ann)(wConf), arg)) {
+          case (t @ Annotated(ann, arg), wConf) => treeCopy.Annotated(t, nowarnAnnotation(ann)(wConf), arg)
+        }
     }
 
     def unapply(tree: Tree): Option[Tree] = pf.lift(tree)

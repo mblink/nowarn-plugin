@@ -5,17 +5,17 @@ object TestModifier {
   @unused private def unusedDef1() = ()
   @bl.unused private def unusedDef2() = ()
 
-  def unusedParam1(@unused x: Unit) = ()
-  def unusedParam2(@bl.unused x: Unit) = ()
+  def unusedParam1(@unused x: Unit) = println()
+  def unusedParam2(@bl.unused x: Unit) = println()
 
-  @unused private def unusedParamInUnusedDef1(@unused x: Unit) = ()
-  @bl.unused private def unusedParamInUnusedDef2(@unused x: Unit) = ()
+  @unused private def unusedParamInUnusedDef1(@unused x: Unit) = println()
+  @bl.unused private def unusedParamInUnusedDef2(@bl.unused x: Unit) = println()
 
-  def unusedImplicitParam1()(implicit @unused x: Unit) = ()
-  def unusedImplicitParam2()(implicit @bl.unused x: Unit) = ()
+  def unusedImplicitParam1()(implicit @unused x: Unit) = println()
+  def unusedImplicitParam2()(implicit @bl.unused x: Unit) = println()
 
-  @unused private def unusedImplicitParamInUnusedDef1()(implicit @unused x: Unit) = ()
-  @bl.unused private def unusedImplicitParamInUnusedDef2()(implicit @bl.unused x: Unit) = ()
+  @unused private def unusedImplicitParamInUnusedDef1()(implicit @unused x: Unit) = println()
+  @bl.unused private def unusedImplicitParamInUnusedDef2()(implicit @bl.unused x: Unit) = println()
 
   @unused private class UnusedClass1()
   @bl.unused private class UnusedClass2()
@@ -76,4 +76,5 @@ object TestAnnotated {
   @deprecated("", "") val x = 1
 
   def usesDeprecated: Int = x: @undeprecated
+  @unused private def usesDeprecatedAndUnused: Int = (x: @undeprecated)
 }
