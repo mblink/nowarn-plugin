@@ -2,7 +2,7 @@ package bl
 
 import dotty.tools.dotc.printing.ReplPrinter
 import dotty.tools.dotc.CompilationUnit
-import dotty.tools.dotc.ast.untpd.*
+import dotty.tools.dotc.ast.untpd.{cpy => untpdCpy, *}
 import dotty.tools.dotc.ast.Trees.Untyped
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.{ctx, Context}
@@ -82,7 +82,7 @@ class NowarnPlugin extends StandardPlugin { self =>
     override val runsAfter: Set[String] = Set(Parser.name)
     override val runsBefore: Set[String] = Set(TyperPhase.name)
 
-    private object transformer extends UntypedTreeMap(dotty.tools.dotc.ast.untpd.cpy) {
+    private object transformer extends UntypedTreeMap(untpdCpy) {
       private def replaceAnns(tree: DefTree)(using Context): Tree = super.transform(self.replaceAnns(tree))
 
       override def transform(tree: Tree)(using Context): Tree =
