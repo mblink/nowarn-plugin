@@ -9,7 +9,7 @@ Add the resolver and compiler plugin dependency to your `build.sbt`:
 
 ```scala
 resolvers += "bondlink-maven-repo" at "https://raw.githubusercontent.com/mblink/maven-repo/main"
-addCompilerPlugin("bondlink" %% "nowarn-plugin" % "1.0.0")
+addCompilerPlugin("bondlink" %% "nowarn-plugin" % "1.1.0")
 ```
 
 ## Configure
