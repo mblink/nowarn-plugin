@@ -1,6 +1,7 @@
 # nowarn plugin
 
-This is a Scala 2 compiler plugin to configure custom annotations that expand into `@annotation.nowarn` annotations before the typer phase.
+This is a Scala 2 and 3 compiler plugin to configure custom annotations that expand into `@annotation.nowarn`
+annotations before the typer phase.
 
 ## Install
 
