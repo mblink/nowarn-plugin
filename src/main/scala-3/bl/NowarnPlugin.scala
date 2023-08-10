@@ -31,7 +31,7 @@ class NowarnPlugin extends StandardPlugin { self =>
       case _ => System.err.println(s"nowarn: invalid option `$opt`")
     })
 
-    List(phase)
+    List(Phase())
   }
 
   private def nowarnAnnotation(tree: Tree)(wConf: String)(using Context): Tree =
@@ -76,7 +76,7 @@ class NowarnPlugin extends StandardPlugin { self =>
     }
   }
 
-  private object phase extends PluginPhase {
+  private class Phase extends PluginPhase {
     override val phaseName: String = self.name
 
     override val runsAfter: Set[String] = Set(Parser.name)
