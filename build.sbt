@@ -1,7 +1,22 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val scala_2_13 = "2.13.11"
-val scala_3 = "3.3.0"
+val scala3 = "3.3.1"
+val scalaVersions = Seq("2.13.12", scala3)
+
+ThisBuild / crossScalaVersions := scalaVersions
+
+// GitHub Actions config
+val javaVersions = Seq(8, 11, 17, 21).map(v => JavaSpec.temurin(v.toString))
+
+ThisBuild / githubWorkflowJavaVersions := javaVersions
+ThisBuild / githubWorkflowArtifactUpload := false
+ThisBuild / githubWorkflowBuildMatrixFailFast := Some(false)
+ThisBuild / githubWorkflowTargetBranches := Seq("main")
+ThisBuild / githubWorkflowPublishTargetBranches := Seq()
+
+ThisBuild / githubWorkflowBuild := Seq(
+  WorkflowStep.Sbt(List("tests/compile"), name = Some("test")),
+)
 
 def foldScalaV[A](scalaVersion: String)(_2: => A, _3: => A): A =
   CrossVersion.partialVersion(scalaVersion) match {
@@ -10,8 +25,8 @@ def foldScalaV[A](scalaVersion: String)(_2: => A, _3: => A): A =
   }
 
 val baseSettings = Seq(
-  crossScalaVersions := Seq(scala_2_13, scala_3),
-  scalaVersion := scala_3,
+  crossScalaVersions := scalaVersions,
+  scalaVersion := scala3,
   organization := "bondlink",
   version := "1.1.1",
   gitPublishDir := file("/src/maven-repo"),
